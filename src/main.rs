@@ -1,5 +1,8 @@
-use anyhow::Result;
+use std::io::{stdin, Read};
+
+use anyhow::{anyhow, Result};
 use clap::Parser;
+use json_typegen_shared::{codegen, ImportStyle, Options};
 use serde::Serialize;
 use serde_json::{
     from_str as json_from_str, to_string_pretty as json_to_string, Value as JsonValue,
@@ -66,17 +69,20 @@ struct Args {
     to: Option<Command>,
 }
 
-#[derive(Parser, Debug, Default)]
+#[derive(Parser, Debug)]
 enum Command {
     /// Convert the input to JSON. This is the default if no subcommand is provided.
-    #[default]
     Json,
     /// Convert the input to TOML
     Toml,
     /// Convert the input to YAML
     Yaml,
     /// Convert the input to Rust serde struct
-    Serde,
+    Serde {
+        /// The name of the root struct to generate
+        #[arg(short, long, default_value = "Root")]
+        name: String,
+    },
 }
 
 fn main() -> Result<()> {
@@ -97,8 +103,12 @@ fn main() -> Result<()> {
         None | Some(Command::Json) => println!("{}", input.to_json()),
         Some(Command::Toml) => println!("{}", input.to_toml()),
         Some(Command::Yaml) => println!("{}", input.to_yaml()),
-        Some(Command::Serde) => {
-            println!("{:?}", input);
+        Some(Command::Serde { name }) => {
+            let mut options = Options::default();
+            options.derives = "Debug, Serialize, Deserialize".into();
+            options.import_style = ImportStyle::AssumeExisting;
+            let result = codegen(&name, &input.to_json(), options).map_err(|e| anyhow!("{e}"))?;
+            println!("{}", result);
         }
     }
 
