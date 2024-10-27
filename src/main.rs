@@ -5,7 +5,6 @@ use serde_json::{
     from_str as json_from_str, to_string_pretty as json_to_string, Value as JsonValue,
 };
 use serde_yml::{from_str as yaml_from_str, to_string as yaml_to_string, Value as YamlValue};
-use std::io::{stdin, Read};
 use toml::{from_str as toml_from_str, to_string_pretty as toml_to_string, Value as TomlValue};
 
 use crate::Format::{Json, Toml, Yaml};
@@ -62,9 +61,22 @@ struct Args {
     #[arg(short, long)]
     from: Option<Format>,
 
-    /// Optional output format. Supported format: json, toml, or yaml
-    #[arg(short, long, default_value = "json")]
-    to: Format,
+    // Optional output format. Supported format: json, toml, or yaml.
+    #[clap(subcommand)]
+    to: Option<Command>,
+}
+
+#[derive(Parser, Debug, Default)]
+enum Command {
+    /// Convert the input to JSON. This is the default if no subcommand is provided.
+    #[default]
+    Json,
+    /// Convert the input to TOML
+    Toml,
+    /// Convert the input to YAML
+    Yaml,
+    /// Convert the input to Rust serde struct
+    Serde,
 }
 
 fn main() -> Result<()> {
@@ -81,14 +93,14 @@ fn main() -> Result<()> {
         },
     };
 
-    println!(
-        "{}",
-        match to {
-            Json(_) => input.to_json(),
-            Toml(_) => input.to_toml(),
-            Yaml(_) => input.to_yaml(),
+    match to {
+        None | Some(Command::Json) => println!("{}", input.to_json()),
+        Some(Command::Toml) => println!("{}", input.to_toml()),
+        Some(Command::Yaml) => println!("{}", input.to_yaml()),
+        Some(Command::Serde) => {
+            println!("{:?}", input);
         }
-    );
+    }
 
     Ok(())
 }
