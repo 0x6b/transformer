@@ -1,89 +1,22 @@
+mod args;
+mod command;
+mod format;
+
 use std::io::{stdin, Read};
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use json_typegen_shared::{codegen, ImportStyle, Options};
-use serde::Serialize;
-use serde_json::{
-    from_str as json_from_str, to_string_pretty as json_to_string, Value as JsonValue,
+use serde_json::from_str as json_from_str;
+use serde_yml::from_str as yaml_from_str;
+use toml::from_str as toml_from_str;
+
+use crate::{
+    args::Args,
+    command::Command,
+    format::Format,
+    Format::{Json, Toml, Yaml},
 };
-use serde_yml::{from_str as yaml_from_str, to_string as yaml_to_string, Value as YamlValue};
-use toml::{from_str as toml_from_str, to_string_pretty as toml_to_string, Value as TomlValue};
-
-use crate::Format::{Json, Toml, Yaml};
-
-#[derive(Debug, Clone, Serialize)]
-enum Format {
-    Json(JsonValue),
-    Toml(TomlValue),
-    Yaml(YamlValue),
-}
-
-impl From<&str> for Format {
-    fn from(s: &str) -> Self {
-        match s.to_lowercase().chars().next() {
-            Some('j') => Json(JsonValue::Null),
-            Some('t') => Toml(TomlValue::String(String::new())),
-            Some('y') => Yaml(YamlValue::Null),
-            _ => panic!("Unknown format: {s}"),
-        }
-    }
-}
-
-impl Format {
-    fn to_json(&self) -> String {
-        match self {
-            Json(v) => json_to_string(&v).unwrap(),
-            Toml(v) => json_to_string(&v).unwrap(),
-            Yaml(v) => json_to_string(&v).unwrap(),
-        }
-    }
-
-    fn to_toml(&self) -> String {
-        match self {
-            Json(v) => toml_to_string(&v).unwrap(),
-            Toml(v) => toml_to_string(&v).unwrap(),
-            Yaml(v) => toml_to_string(&v).unwrap(),
-        }
-    }
-
-    fn to_yaml(&self) -> String {
-        match self {
-            Json(v) => yaml_to_string(&v).unwrap(),
-            Toml(v) => yaml_to_string(&v).unwrap(),
-            Yaml(v) => yaml_to_string(&v).unwrap(),
-        }
-    }
-}
-
-#[derive(Parser, Debug)]
-#[clap(about, version)]
-struct Args {
-    /// Optional input format. Supported format: json, toml, or yaml. If not provided, the format
-    /// will be guessed.
-    #[arg(short, long)]
-    from: Option<Format>,
-
-    // Optional output format. Supported format: json, toml, or yaml.
-    #[clap(subcommand)]
-    to: Option<Command>,
-}
-
-#[derive(Parser, Debug)]
-enum Command {
-    /// Convert the input to JSON. This is the default if no subcommand is provided.
-    Json,
-    /// Convert the input to TOML
-    Toml,
-    /// Convert the input to YAML
-    Yaml,
-    /// Convert the input to Rust serde struct
-    Serde {
-        /// The name of the root struct to generate
-        #[arg(short, long, default_value = "Root")]
-        name: String,
-    },
-}
 
 fn main() -> Result<()> {
     let Args { from, to } = Args::parse();
@@ -103,12 +36,12 @@ fn main() -> Result<()> {
         None | Some(Command::Json) => println!("{}", input.to_json()),
         Some(Command::Toml) => println!("{}", input.to_toml()),
         Some(Command::Yaml) => println!("{}", input.to_yaml()),
-        Some(Command::Serde { name }) => {
+        Some(Command::Serde { name, derives }) => {
             let mut options = Options::default();
-            options.derives = "Debug, Serialize, Deserialize".into();
+            options.derives = derives;
             options.import_style = ImportStyle::AssumeExisting;
             let result = codegen(&name, &input.to_json(), options).map_err(|e| anyhow!("{e}"))?;
-            println!("{}", result);
+            println!("{result}");
         }
     }
 
