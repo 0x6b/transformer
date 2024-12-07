@@ -1,6 +1,6 @@
 [package]
 name = "transformer"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2021"
 description = "A CLI tool to convert from JSON|TOML|YAML to JSON|TOML|YAML|Rust serde structs."
 
