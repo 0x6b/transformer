@@ -1,6 +1,5 @@
 mod args;
 mod command;
-mod format;
 
 use std::io::{stdin, Read};
 
@@ -10,13 +9,12 @@ use json_typegen_shared::{codegen, ImportStyle, Options};
 use serde_json::from_str as json_from_str;
 use serde_yml::from_str as yaml_from_str;
 use toml::from_str as toml_from_str;
-
-use crate::{
-    args::Args,
-    command::Command,
-    format::Format,
+use transformer::{
+    Format,
     Format::{Json, Toml, Yaml},
 };
+use crate::args::Args;
+use crate::command::Command;
 
 fn main() -> Result<()> {
     let Args { from, to } = Args::parse();
