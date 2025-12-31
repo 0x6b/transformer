@@ -13,8 +13,8 @@ use transformer::{
     Format,
     Format::{Json, Toml, Yaml},
 };
-use crate::args::Args;
-use crate::command::Command;
+
+use crate::{args::Args, command::Command};
 
 fn main() -> Result<()> {
     let Args { from, to } = Args::parse();

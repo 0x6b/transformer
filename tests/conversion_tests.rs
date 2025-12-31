@@ -1,4 +1,4 @@
-use serde_json::from_str as json_from_str;
+use serde_json::{from_str as json_from_str, to_value};
 use serde_yml::from_str as yaml_from_str;
 use toml::from_str as toml_from_str;
 use transformer::Format;
@@ -45,7 +45,7 @@ fn parse_yaml(s: &str) -> serde_yml::Value {
 }
 
 fn to_canonical_json(v: &impl serde::Serialize) -> serde_json::Value {
-    serde_json::to_value(v).unwrap()
+    to_value(v).unwrap()
 }
 
 #[test]
