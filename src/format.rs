@@ -1,7 +1,7 @@
 use serde::Serialize;
-use serde_json::{to_string_pretty as json_to_string, Value as JsonValue};
-use serde_yml::{to_string as yaml_to_string, Value as YamlValue};
-use toml::{to_string_pretty as toml_to_string, Value as TomlValue};
+use serde_json::{Value as JsonValue, to_string_pretty as json_to_string};
+use serde_yml::{Value as YamlValue, to_string as yaml_to_string};
+use toml::{Value as TomlValue, to_string_pretty as toml_to_string};
 
 #[derive(Debug, Clone, Serialize)]
 pub enum Format {
