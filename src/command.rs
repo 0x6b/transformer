@@ -8,6 +8,24 @@ pub enum Command {
     Toml,
     /// Convert the input to YAML
     Yaml,
+    /// Convert the input to Go type definitions
+    Go {
+        /// Root Go type name
+        #[arg(long = "type", value_name = "NAME")]
+        type_name: Option<String>,
+
+        /// Emit anonymous nested structs
+        #[arg(long = "inline", action = clap::ArgAction::SetFalse, default_value_t = true)]
+        flatten: bool,
+
+        /// Add example tags for scalar values
+        #[arg(long)]
+        example: bool,
+
+        /// Add omitempty to every JSON tag
+        #[arg(long = "omitempty")]
+        all_omitempty: bool,
+    },
     /// Convert the input to Rust serde struct
     Serde {
         /// The name of the root struct to generate
