@@ -3,6 +3,8 @@ use std::{
     process::{Command, Output, Stdio},
 };
 
+use serde_json::json;
+
 const INPUTS: [(&str, &str); 3] = [
     ("json", r#"{"name":"transformer","enabled":true}"#),
     ("toml", "name = \"transformer\"\nenabled = true\n"),
@@ -31,7 +33,7 @@ fn stdout(output: Output, from: &str, to: &str) -> String {
 }
 
 fn expected() -> serde_json::Value {
-    serde_json::json!({"name": "transformer", "enabled": true})
+    json!({"name": "transformer", "enabled": true})
 }
 
 #[test]
