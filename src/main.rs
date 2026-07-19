@@ -1,10 +1,12 @@
 mod args;
 mod command;
-
-use std::io::{Read, stdin};
+mod format;
+mod go;
+use std::io::{Read, Write, stdin, stdout};
 
 use anyhow::{Result, anyhow};
 use clap::Parser;
+use go::convert;
 use json_typegen_shared::{ImportStyle, Options, codegen};
 use serde_json::from_str as json_from_str;
 use serde_yml::from_str as yaml_from_str;
@@ -34,6 +36,11 @@ fn main() -> Result<()> {
         None | Some(Command::Json) => println!("{}", input.to_json()),
         Some(Command::Toml) => println!("{}", input.to_toml()),
         Some(Command::Yaml) => println!("{}", input.to_yaml()),
+        Some(Command::Go { type_name, flatten, example, all_omitempty }) => {
+            let options = go::Options { type_name, flatten, example, all_omitempty };
+            let result = convert(&input.to_json(), &options)?;
+            stdout().write_all(result.as_bytes())?;
+        }
         Some(Command::Serde { name, derives }) => {
             let mut options = Options::default();
             options.derives = derives;
